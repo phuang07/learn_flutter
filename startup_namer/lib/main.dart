@@ -1,119 +1,47 @@
-// Copyright 2018 The Flutter team. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+class Product {
+  const Product({this.name});
+  final String name;
+}
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:english_words/english_words.dart';
+typedef void CartChangedCallback(Product product, bool inCart);
 
-void main() => runApp(MyApp());
+class ShoppingListItem extends StatelessWidget {
+  ShoppingListItem({Product product, this.inCart, this.onCartChanged})
+      : product = product,
+        super(key: ObjectKey(product));
 
-// #docregion MyApp
-class MyApp extends StatelessWidget {
-  // #docregion build
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-//      title: 'Startup Name Generator',
-      home: RandomWords(),
-//      home: new ListDisplay(),
+  final Product product;
+  final bool inCart;
+  final CartChangedCallback onCartChanged;
+
+  Color _getColor(BuildContext context) {
+    // The theme depends on the BuildContext because different parts of the tree
+    // can have different themes.  The BuildContext indicates where the build is
+    // taking place and therefore which theme to use.
+
+    return inCart ? Colors.black54 : Theme.of(context).primaryColor;
+  }
+
+  TextStyle _getTextStyle(BuildContext context) {
+    if (!inCart) return null;
+
+    return TextStyle(
+      color: Colors.black54,
+      decoration: TextDecoration.lineThrough,
     );
   }
-// #enddocregion build
-}
-// #enddocregion MyApp
-
-class ListDisplay extends StatefulWidget {
-  @override
-  State createState() => new DynamicList();
-}
-
-class DynamicList extends State<ListDisplay> {
-  List<String> items = [];
-  final TextEditingController eCtrl = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-        appBar: new AppBar(
-          title: new Text("Dynamic Text"),
-        ),
-        body: new Column(
-          children: <Widget>[
-            new TextField(
-              controller: eCtrl,
-              onSubmitted: (text) {
-                items.add(text);
-                eCtrl.clear();
-                setState(() {});
-              },
-            ),
-            new Expanded(
-              child: new ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (BuildContext ctxt, int index) {
-                  return new Text(items[index]);
-                },
-              ),
-            )
-          ],
-        ));
-  }
-}
-
-// #docregion RWS-var
-class RandomWordsState extends State<RandomWords> {
-  final _suggestions = <WordPair>[];
-  final _biggerFont = const TextStyle(fontSize: 18.0);
-
-  // #enddocregion RWS-var
-
-  // #docregion _buildSuggestions
-  Widget _buildSuggestions() {
-    return ListView.builder(
-        padding: const EdgeInsets.all(1.0),
-        itemBuilder: /*1*/ (context, i) {
-          if (i.isOdd) return Divider();
-          /*2*/
-
-          final index = i ~/ 2; /*3*/
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(3)); /*4*/
-          }
-          return _buildRow(_suggestions[index]);
-        });
-  }
-
-  // #enddocregion _buildSuggestions
-
-  // #docregion _buildRow
-  Widget _buildRow(WordPair pair) {
     return ListTile(
-      title: Text(
-        pair.asPascalCase,
-        style: _biggerFont,
+      onTap: () {
+        onCartChanged(product, !inCart);
+      },
+      leading: CircleAvatar(
+        backgroundColor: _getColor(context),
+        child: Text(product.name[0]),
       ),
+      title: Text(product.name, style: _getTextStyle(context)),
     );
   }
-
-  // #enddocregion _buildRow
-
-  // #docregion RWS-build
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Startup Name Generator'),
-      ),
-      body: _buildSuggestions(),
-    );
-  }
-// #enddocregion RWS-build
-// #docregion RWS-var
-}
-// #enddocregion RWS-var
-
-class RandomWords extends StatefulWidget {
-  @override
-  RandomWordsState createState() => RandomWordsState();
 }
